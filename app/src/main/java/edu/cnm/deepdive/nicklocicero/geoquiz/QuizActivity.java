@@ -2,28 +2,46 @@ package edu.cnm.deepdive.nicklocicero.geoquiz;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class QuizActivity extends AppCompatActivity {
 
   private Button mTrueButton;
   private Button mFalseButton;
+  private Button mNextButton;
+  private Button mPreviousButton;
+  private TextView mQuestionTextView;
+  private ImageView mQuestionImageView;
+
+  private Question[] mQuestionBank = new Question[] {
+      new Question(R.string.question_australia, R.drawable.canberra, true),
+      new Question(R.string.question_oceans, R.drawable.pacific_ocean, true),
+      new Question(R.string.question_mideast, R.drawable.suez_canal, false),
+      new Question(R.string.question_africa, R.drawable.nile_river, false),
+      new Question(R.string.question_americas, R.drawable.amazon_river, true),
+      new Question(R.string.question_asia, R.drawable.lake_baikal, true)
+  };
+
+  private int mCurrentIndex = 0;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_quiz);
 
+    mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
+    mQuestionImageView = (ImageView) findViewById(R.id.question_image);
+    updateQuestion();
+
     mTrueButton = (Button) findViewById(R.id.true_button);
     mTrueButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        Toast.makeText(QuizActivity.this,
-            R.string.correct_toast,
-            Toast.LENGTH_SHORT).show();
+        checkAnswer(true);
       }
     });
 
@@ -31,12 +49,47 @@ public class QuizActivity extends AppCompatActivity {
     mFalseButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        Toast toast = Toast.makeText(QuizActivity.this,
-            R.string.incorrect_toast,
-            Toast.LENGTH_SHORT);
-        toast.setGravity(Gravity.TOP, 0, 0);
-        toast.show();
+        checkAnswer(false);
       }
     });
+
+    mNextButton = (Button) findViewById(R.id.next_button);
+    mNextButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+        updateQuestion();
+      }
+    });
+
+    mPreviousButton = (Button) findViewById(R.id.previous_button);
+    mPreviousButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        mCurrentIndex = (mCurrentIndex + (mQuestionBank.length - 1)) % mQuestionBank.length;
+        updateQuestion();
+      }
+    });
+  }
+
+  private void updateQuestion() {
+    int question = mQuestionBank[mCurrentIndex].getTextResId();
+    mQuestionTextView.setText(question);
+    int questionImage = mQuestionBank[mCurrentIndex].getImageId();
+    mQuestionImageView.setImageResource(questionImage);
+  }
+
+  private void checkAnswer(boolean userPressedTrue) {
+    boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
+
+    int messageResId = 0;
+
+    if (userPressedTrue == answerIsTrue) {
+      messageResId = R.string.correct_toast;
+    } else {
+      messageResId = R.string.incorrect_toast;
+    }
+
+    Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
   }
 }
